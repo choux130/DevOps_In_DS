@@ -1,0 +1,90 @@
+version: '3.8'
+services:
+
+  mysql:
+    image: mysql:8.0.32
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PWD}
+      - MYSQL_USER=${MYSQL_USR}
+      - MYSQL_PASSWORD=${MYSQL_PWD}
+      - MYSQL_DATABASE=world
+      - TZ=UTC
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    restart: always
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init_db:/docker-entrypoint-initdb.d/:ro    
+    networks:
+      - mynetwork
+    ports:
+      - "3306:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:5.2.1
+    links:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    restart: always
+    networks:
+      - mynetwork
+    ports:
+      - 8081:80
+
+  minio:
+    image: minio/minio:latest
+    command: server --console-address :9001 /data
+    environment:
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+    ports:
+      - "9191:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - mynetwork
+
+  createbuckets:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    environment:
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add myminio http://minio:9000 ${MINIO_ACCESS_KEY} ${MINIO_SECRET_KEY};
+      /usr/bin/mc rm -r --force myminio/de-datapreprocessing;
+      /usr/bin/mc mb myminio/de-datapreprocessing;
+      /usr/bin/mc policy download myminio/de-datapreprocessing;
+      
+      /usr/bin/mc rm -r --force myminio/de-datapreprocessing-local;
+      /usr/bin/mc mb myminio/de-datapreprocessing-local;
+      /usr/bin/mc policy download myminio/de-datapreprocessing-local;
+      exit 0;
+      "
+    networks:
+      - mynetwork
+
+  # # Had issues on running `docker login` in the `jenkins` container because it seems to have further configuation on "insecure registry".
+  # # https://docs.docker.com/registry/insecure/
+  # nexus:
+  #   image: sonatype/nexus3:3.51.0
+  #   ports:
+  #     - "8181:8081"
+  #     - "8282:8082"
+  #   volumes:
+  #     - nexus-data:/nexus-data
+  #   networks:
+  #     - mynetwork
+
+networks:
+  mynetwork:
+    external: true
+
+volumes:
+  mysql-data:
+  minio-data:
+  # nexus-data:

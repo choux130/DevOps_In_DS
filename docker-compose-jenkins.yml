@@ -1,0 +1,38 @@
+version: '3.7'
+services:
+
+  gitbucket:
+    image: gitbucket/gitbucket:4.38.4
+    restart: always
+    networks:
+      - mynetwork    
+    ports:
+      - '8082:8080'
+      - '29418:29418'
+    volumes:
+      - 'gitbucket:/gitbucket'
+
+  jenkins:
+    build:
+      context: ./jenkins
+    restart: always
+    environment:
+      - DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}
+      - DOCKERHUB_PASSWORD=${DOCKERHUB_PASSWORD}
+    ports:
+      - '8080:8080'
+      - '50000:50000'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock'
+      - 'jenkinshome:/var/jenkins_home'
+    networks:
+      - mynetwork
+
+
+networks:
+  mynetwork:
+    external: true
+
+volumes:
+  gitbucket:
+  jenkinshome: 

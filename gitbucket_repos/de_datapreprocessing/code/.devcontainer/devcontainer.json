@@ -1,0 +1,16 @@
+{
+	"name": "Existing Docker Compose (Extend)",
+
+	"dockerComposeFile": [
+		"../../docker-compose.yml",
+		"docker-compose-dev-in-container.yml"
+	],
+
+	"service": "data_preprocessing",
+
+	"workspaceFolder": "/workspace",
+
+	"settings": {},
+
+	"extensions": ["ms-python.python"], 
+}

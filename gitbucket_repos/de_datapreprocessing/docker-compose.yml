@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  data_preprocessing:
+    build:
+      context: ./code
+      target: final-islocaldevelopment-false
+    image: de_datapreprocessing
+    # command:
+    #   - /bin/bash
+    #   - -c 
+    #   - sleep infinity
+

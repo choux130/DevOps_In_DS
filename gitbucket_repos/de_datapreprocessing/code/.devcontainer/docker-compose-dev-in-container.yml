@@ -1,0 +1,25 @@
+version: '3.7'
+services:
+  data_preprocessing:
+    build:
+      context: ./code
+      target: final-islocaldevelopment-true
+
+    environment:
+      - DVC_REMOTE=local
+      - MYSQL_USR=admin
+      - MYSQL_PWD=admin
+      - MINIO_USER=myaccesskey
+      - MINIO_PASSWORD=mysecretkey
+
+    volumes:
+      - .:/workspace:cached
+ 
+    command: /bin/sh -c "while sleep 1000; do :; done"
+
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    external: true

@@ -1,0 +1,143 @@
+version: '3.7'
+
+x-common:
+  &common
+  image: apache/airflow:2.3.3
+  user: "${AIRFLOW_UID}:0"
+  environment: 
+    - POSTGRES_USER=${AIRFLOW_POSTGRES_USR}
+    - POSTGRES_PASSWORD=${AIRFLOW_POSTGRES_PWD}
+    - POSTGRES_DB=airflow
+    - AIRFLOW_UID=0
+    - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=True
+    - AIRFLOW__CORE__LOAD_EXAMPLES=False
+    - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${AIRFLOW_POSTGRES_USR}:${AIRFLOW_POSTGRES_PWD}@postgres/airflow
+    - AIRFLOW__DATABASE__LOAD_DEFAULT_CONNECTIONS=False
+    - AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL=30
+    - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+    - _AIRFLOW_DB_UPGRADE=True
+    - _AIRFLOW_WWW_USER_CREATE=True
+    - _AIRFLOW_WWW_USER_USERNAME=${AIRFLOW_USR}
+    - _AIRFLOW_WWW_USER_PASSWORD=${AIRFLOW_PWD}
+    - AIRFLOW_CONN_DOCKERHUB=docker://${DOCKERHUB_USR}:${DOCKERHUB_PWD}@https%3A%2F%2Findex.docker.io%2Fv1:80
+    
+    - DOCKERHUB_USR=${DOCKERHUB_USR}
+    - DOCKERHUB_PWD=${DOCKERHUB_PWD}
+    - MYSQL_USR=${MYSQL_USR}
+    - MYSQL_PWD=${MYSQL_PWD}
+    - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+    - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+
+  volumes:
+    - airflowdags:/opt/airflow/dags
+    - airflowlogs:/opt/airflow/logs
+    - /var/run/docker.sock:/var/run/docker.sock
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    environment: 
+      - POSTGRES_USER=${AIRFLOW_POSTGRES_USR}
+      - POSTGRES_PASSWORD=${AIRFLOW_POSTGRES_PWD}
+      - POSTGRES_DB=airflow
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.airflow_webserver == true]
+    networks:
+        - mynetwork
+    volumes:
+      - airflowdags:/opt/airflow/dags
+      - airflowlogs:/opt/airflow/logs
+
+  scheduler:
+    <<: *common
+    container_name: airflow-scheduler
+    command: scheduler
+    restart: on-failure
+    networks:
+        - mynetwork
+    volumes:
+      - airflowdags:/opt/airflow/dags
+      - airflowlogs:/opt/airflow/logs
+
+  webserver:
+    <<: *common
+    container_name: airflow-webserver
+    restart: always
+    command: webserver
+    ports:
+      - "9090:8080"
+    networks:
+      - mynetwork
+    volumes:
+      - airflowdags:/opt/airflow/dags
+      - airflowlogs:/opt/airflow/logs
+
+  airflow-init:
+    <<: *common
+    container_name: airflow-init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        mkdir -p /sources/logs /sources/dags /sources/plugins
+        chown -R "${AIRFLOW_UID}:0" /sources/{logs,dags,plugins}
+        exec /entrypoint airflow version
+    networks:
+        - mynetwork
+
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy:latest
+    environment:
+      AUTH: 1
+      SECRETS: 1 
+      POST: 1
+      CONFIGS: 1
+      CONTAINERS: 1 
+      EXEC: 1
+      IMAGES: 1
+      NETWORKS: 1
+      SYSTEM: 1
+      TASKS: 1
+      VOLUMES: 1
+    privileged: true
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.airflow_scheduler == true]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: always
+    networks:
+      - mynetwork
+
+  git-sync:
+    image: openweb/git-sync:0.0.1
+    environment:
+      GIT_SYNC_REPO: http://gitbucket:8080/git/root/myairflow_dags.git
+      GIT_SYNC_DEST: "/git"
+      GIT_SYNC_BRANCH: master
+      GIT_SYNC_REV: "FETCH_HEAD"
+      GIT_SYNC_WAIT: "10"
+    volumes:
+      - airflowdags:/git
+    restart: always
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    external: true
+
+volumes:
+  airflowdags:
+  airflowlogs: 
