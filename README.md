@@ -142,6 +142,7 @@ This is the architecture diagram. Every services are run in Docker containers, s
     cd ./DevOps_In_DS/gitbucket_repos/myairflow_dags
     rm -rf .git
     ```
+    ```sh
     cd ./DevOps_In_DS/gitbucket_repos/de_datapreprocessing
     rm -rf .git
     ```
