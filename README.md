@@ -133,8 +133,6 @@ This is the architecture diagram. Every services are run in Docker containers, s
 * Remove the local git repo (`myairflow_dags`, `de_datapreprocessing`).
     ```sh
     rm -rf ./gitbucket_repos/myairflow_dags/.git
-    ```
-    ```sh
     rm -rf ./gitbucket_repos/de_datapreprocessing/.git
     ```
 
@@ -150,3 +148,12 @@ This is the architecture diagram. Every services are run in Docker containers, s
 * [MLOps: Continuous delivery and automation pipelines in machine learning](https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning)
 * [MLOps Principles](https://ml-ops.org/content/mlops-principles)
 * [How to Build and Push Docker Images to Docker Hub using Jenkins Pipeline](https://sweetcode.io/how-to-build-and-push-docker-images-to-docker-hub-using-jenkins-pipeline/) 
+
+# TODO
+- [] add mlflow services for quick visualization interface for versioned data and later model experiment tracking
+- [] log generated versioned data description artifacts to mlflow
+- [] be able to run historical data preprocessing versioned code, in `run.sh` checked out a specific code commit. The code commit can be passed in as a dag parameter and then env var for docker container 
+
+- [] create ds_mlmodeling image and log everything to mlflow
+- [] create a restapi container to pull model from mlflow artifacts datasource with experiment id as model version and pass in to container as env var
+- [] log api usage and model performance in Prometheus and Grafana 
