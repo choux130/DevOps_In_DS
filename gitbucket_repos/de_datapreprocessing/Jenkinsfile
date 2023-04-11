@@ -30,7 +30,7 @@ pipeline {
 
         stage('Tag') {
             steps {
-                sh 'docker tag de_datapreprocessing $DockerHub_USR/de_datapreprocessing:${BUILD_ID}'
+                sh 'docker tag de_datapreprocessing $DockerHub_USR/de_datapreprocessing:$(date "+%Y%m%d")-${BUILD_ID}'
                 sh 'docker tag de_datapreprocessing $DockerHub_USR/de_datapreprocessing:latest'
             }
         }
@@ -38,7 +38,7 @@ pipeline {
         stage('Push') {
             steps {
                 
-                sh 'docker push $DockerHub_USR/de_datapreprocessing:${BUILD_ID}'
+                sh 'docker push $DockerHub_USR/de_datapreprocessing:$(date "+%Y%m%d")-${BUILD_ID}'
                 sh 'docker push $DockerHub_USR/de_datapreprocessing:latest'
             }
         }

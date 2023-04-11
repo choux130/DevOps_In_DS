@@ -26,17 +26,10 @@ For example,
 
 This is the architecture diagram. Every services are run in Docker containers, so we can host any of the service on the remote server easily if we want. 
 <p align="center">
-<img src="img/MLOps_diagram_mytake.png" width="600" title="architecture_diagram">
+<img src="img/MLOps_diagram_mytake.png" title="architecture_diagram">
 </p>
 
 # Services Setup
-0. Set your Dockerhub credentials as environment variables (`DOCKERHUB_USR` and `DOCKERHUB_PWD`) in the same terminal window for later `docker compose up` command.
-
-    ```sh
-    export DOCKERHUB_USR=<your-dockerhub-username>
-    export DOCKERHUB_PWD=<your-dockerhub-password>
-    ```
-
 1. Create a network called `mynetwork` to connect all the services.
     ```sh
     docker network create mynetwork
@@ -50,7 +43,7 @@ This is the architecture diagram. Every services are run in Docker containers, s
         * `http://localhost:8081`
         * username:password is `root:root` or `admin:admin`
     * Log in `minio`
-        * `http://localhost:`
+        * `http://localhost:9001`
         * username:password is `myaccesskey:mysecretkey`
 
 3. Run the `gitbucket` and `jenkins` containers.
@@ -64,11 +57,15 @@ This is the architecture diagram. Every services are run in Docker containers, s
         * `http://localhost:8080`
         * Create an admin user with username:password as `admin:admin`.
         * Install the [Gitbucket](https://plugins.jenkins.io/gitbucket/) plugin.
-        * Add a username and password credential called `dockerhub`.
-
+        * Add your Dockerhub username and password as a jenkins global credential with ID as `dockerhub`.
+        * Refer [How to Build and Push Docker Images to Docker Hub using Jenkins Pipeline](https://sweetcode.io/how-to-build-and-push-docker-images-to-docker-hub-using-jenkins-pipeline/).
 
 4. Run `airflow` related containers.
     ```sh 
+    # Set your Dockerhub credentials as environment variables
+    export DOCKERHUB_USR=<your-dockerhub-username>
+    export DOCKERHUB_PWD=<your-dockerhub-password>
+    
     docker compose -f docker-compose-airflow.yml -p airflow up -d 
     ```
     * Log in `airflow`
@@ -83,11 +80,11 @@ This is the architecture diagram. Every services are run in Docker containers, s
         git add .
         git commit -m "first commit"
         git remote add origin http://localhost:8082/git/root/myairflow_dags.git
-        git push -u origin master
+        git push -u origin main
         ```
-    * ==short video (TBD)==
+    * Manually type in the `gitbucket` crendentials `root:root` on the terminal prompt
 
-5. Create a repo called `de_datapreprocessing`, in the `gitbucket` container through the ui (`http://localhost:8082`) and check in all the files in `~/DevOps_In_DS/gitbucket_repos/de_datapreprocessing` to the repo.
+6. Create a repo called `de_datapreprocessing`, in the `gitbucket` container through the ui (`http://localhost:8082`) and check in all the files in `~/DevOps_In_DS/gitbucket_repos/de_datapreprocessing` to the repo.
     * Run the commands with `root:root` as username:password.
         ```sh
         cd ./gitbucket_repos/de_datapreprocessing
@@ -95,7 +92,7 @@ This is the architecture diagram. Every services are run in Docker containers, s
         git add .
         git commit -m "first commit"
         git remote add origin http://localhost:8082/git/root/de_datapreprocessing.git
-        git push -u origin master
+        git push -u origin main
         ```
     * Steps to initiate a DVC project in the git project (it is already done in this poc project).  
         * ```sh
@@ -103,24 +100,21 @@ This is the architecture diagram. Every services are run in Docker containers, s
           ```
         * Update the `~/.dvc/config`
             ```sh
-            ['remote "master"']
+            ['remote "main"']
                 url = s3://de-datapreprocessing/dvc
-                endpointurl = http://minio:9000
+                endpointurl = http://minio:9001
             ['remote "local"']
                 url = s3://de-datapreprocessing-local/dvc
-                endpointurl = http://minio:9000
+                endpointurl = http://minio:9001
             ```
-    * ==short video (TBD)==
 
-5. Create a pipeline called `de_datapreprocessing_pipeline` in the `jenkins` container through the ui (`http://localhost:8080`) and have it connect to the repo, `de_datapreprocessing`.
+5. Create a multibranch pipeline called `de_datapreprocessing_pipeline` in the `jenkins` container through the ui (`http://localhost:8080`) and have it connect to the repo, `de_datapreprocessing`.
     * The repo URL is `http://gitbucket:8080/git/root/de_datapreprocessing.git`.
-    * ==short video (TBD)==
 
 # Trigger (have services connected together)
 1. Build `de_datapreprocessing` docker image and push to DockerHub using the Jenkins pipline, `de_datapreprocessing_pipeline`.
-    * Manually trigger the pipeline by hitting the `Build Now`. <--- Ideally, it should be run automatically after code checked in.
+    * Manually trigger the pipeline by hitting the `Build Now`. <mark><--- Ideally, it should be run automatically after code checked in.</mark>
     * Check out the personal DockerHub repo to see if the image are pushed with the `latest` tag.
-    * ==short video (TBD)==
 
 2. Run `de_preprocessing` dag in `airflow`. 
     * Check out the tag in `de_preprocessing` repo in `gitbucket` with tag name as this format `CV_<last_commit_message>_DV_<time_versioned_data_generated>`.
@@ -129,7 +123,6 @@ This is the architecture diagram. Every services are run in Docker containers, s
 # Clean up
 * Remove all the containers.
     ```sh
-    cd ./DevOps_In_DS
     docker compose -f docker-compose-storage.yml -p storage down
     docker compose -f docker-compose-jenkins.yml -p devops down
     docker compose -f docker-compose-airflow.yml -p airflow down
@@ -139,12 +132,10 @@ This is the architecture diagram. Every services are run in Docker containers, s
     ```
 * Remove the local git repo (`myairflow_dags`, `de_datapreprocessing`).
     ```sh
-    cd ./DevOps_In_DS/gitbucket_repos/myairflow_dags
-    rm -rf .git
+    rm -rf ./gitbucket_repos/myairflow_dags/.git
     ```
     ```sh
-    cd ./DevOps_In_DS/gitbucket_repos/de_datapreprocessing
-    rm -rf .git
+    rm -rf ./gitbucket_repos/de_datapreprocessing/.git
     ```
 
 # Future works

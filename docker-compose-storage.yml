@@ -38,8 +38,8 @@ services:
     environment:
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
-    ports:
-      - "9191:9000"
+    ports:      
+      - "9000:9000"
       - "9001:9001"
     volumes:
       - minio-data:/data

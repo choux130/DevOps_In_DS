@@ -125,7 +125,7 @@ services:
     environment:
       GIT_SYNC_REPO: http://gitbucket:8080/git/root/myairflow_dags.git
       GIT_SYNC_DEST: "/git"
-      GIT_SYNC_BRANCH: master
+      GIT_SYNC_BRANCH: main
       GIT_SYNC_REV: "FETCH_HEAD"
       GIT_SYNC_WAIT: "10"
     volumes:

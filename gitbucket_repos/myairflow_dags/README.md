@@ -1,4 +1,1 @@
-airflow_dags_repo
-===============
-
-create a repo and save airflow dags in there.
+This is the repo for saving all the airflow dags.

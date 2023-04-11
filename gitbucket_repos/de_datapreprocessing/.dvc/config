@@ -1,4 +1,4 @@
-['remote "master"']
+['remote "main"']
     url = s3://de-datapreprocessing/dvc
     endpointurl = http://minio:9000
 ['remote "local"']

@@ -16,9 +16,6 @@ services:
     build:
       context: ./jenkins
     restart: always
-    environment:
-      - DOCKERHUB_USERNAME=${DOCKERHUB_USERNAME}
-      - DOCKERHUB_PASSWORD=${DOCKERHUB_PASSWORD}
     ports:
       - '8080:8080'
       - '50000:50000'

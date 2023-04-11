@@ -21,7 +21,7 @@ if [ "$DEV_IN_CONTAINER" = "True" ]; then
 else
     
     MSG="[>>>>> Run tasks in python <<<<<]"
-    export GIT_BRANCH=$(if [ $DVC_REMOTE = "local" ]; then echo "master"; else echo $DVC_REMOTE; fi)
+    export GIT_BRANCH=$(if [ $DVC_REMOTE = "local" ]; then echo "main"; else echo $DVC_REMOTE; fi)
     export GIT_REPONAME=de_datapreprocessing
     git clone http://gitbucket:8080/git/root/$GIT_REPONAME.git --branch $GIT_BRANCH $PRORJECT_DIR/cloned_repo
     cd $PRORJECT_DIR/cloned_repo/code
