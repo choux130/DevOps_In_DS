@@ -69,7 +69,7 @@ This is the architecture diagram. Every services are run in Docker containers, s
     docker compose -f docker-compose-airflow.yml -p airflow up -d 
     ```
     * Log in `airflow`
-        * `http://airflow:9090`
+        * `http://localhost:9090`
         * username:password is `admin:admin`
 
 5. Create a repo called `myairflow_dags`, in the `gitbucket` container through the ui (`http://localhost:8082`) and check in all the files in `~/DevOps_In_DS/gitbucket_repos/myairflow_dags` to the repo.
@@ -82,7 +82,7 @@ This is the architecture diagram. Every services are run in Docker containers, s
         git remote add origin http://localhost:8082/git/root/myairflow_dags.git
         git push -u origin main
         ```
-    * Manually type in the `gitbucket` crendentials `root:root` on the terminal prompt
+    * Manually type in the `gitbucket` crendentials `root:root` on the terminal prompt if necessary. 
 
 6. Create a repo called `de_datapreprocessing`, in the `gitbucket` container through the ui (`http://localhost:8082`) and check in all the files in `~/DevOps_In_DS/gitbucket_repos/de_datapreprocessing` to the repo.
     * Run the commands with `root:root` as username:password.
@@ -94,7 +94,7 @@ This is the architecture diagram. Every services are run in Docker containers, s
         git remote add origin http://localhost:8082/git/root/de_datapreprocessing.git
         git push -u origin main
         ```
-    * Steps to initiate a DVC project in the git project (it is already done in this poc project).  
+    * [Skipped] Steps to initiate a DVC project in the git project (it is already done in this poc project, no need to do it again).  
         * ```sh
           dvc init
           ```
